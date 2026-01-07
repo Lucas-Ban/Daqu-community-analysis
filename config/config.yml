@@ -1,0 +1,32 @@
+project:
+  prefix: "16s"
+  rand_time: 1000
+  nworker: 4
+  memory_G: 50
+  ds: 0.2
+  bin_size_limit: 24
+  sig_index: "Confidence"
+
+paths:
+  com_file: "data/iCAMP/asv_16s.txt"
+  tree_file: "data/iCAMP/output_16stree.nwk"
+  clas_file: "data/iCAMP/classification_16s.txt"
+  treat_file: null
+  env_file: null
+
+output:
+  out_dir: "output/16s"
+
+robustness:
+  input_dir: "data/iCAMP/robustness/all"
+  selected_rows_file: "data/iCAMP/robustness/selected_rows.txt"
+  node_attribute_file: "data/iCAMP/robustness/NodeAttribute.txt"
+  out_dir: "output/robustness"
+
+  n_windows: 76
+  file_pattern: "{i}.txt"
+  sep: "\t"
+  corr_cutoff: 0.80
+  pseudocount: 0.01
+  nperm: 100
+  nworker: 8

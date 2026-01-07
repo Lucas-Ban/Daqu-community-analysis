@@ -1,0 +1,33 @@
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+
+# ---- R ----
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+*.Rproj
+
+# ---- Output / generated results ----
+output/
+**/output/
+*.log
+tmp/
+temp/
+
+# ---- iCAMP bigmatrix / intermediate files (often huge) ----
+pd.bin
+pd.desc
+pd.taxon.name.csv
+path.rda
+
+# ---- Backups ----
+*.bak
+*~
+
+# ---- Data (recommended: do not upload raw data) ----
+data/

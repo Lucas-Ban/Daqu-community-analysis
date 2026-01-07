@@ -1,0 +1,18 @@
+project:
+  prefix: "its"
+  rand_time: 1000
+  nworker: 4
+  memory_G: 50
+  ds: 0.2
+  bin_size_limit: 24
+  sig_index: "Confidence"
+
+paths:
+  com_file: "data/iCAMP/asv_its.txt"
+  tree_file: "data/iCAMP/output_itstree.nwk"
+  clas_file: "data/iCAMP/classification_its.txt"
+  treat_file: null
+  env_file: null
+
+output:
+  out_dir: "output/its"
