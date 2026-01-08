@@ -1,46 +1,91 @@
-# Utilities: config, IO checks, small helpers
+# =========================================================
+# One-click runner for ALL figure scripts
+# Put this file under: R/00_run_all_figures.R
+#
+# Usage:
+#   source("R/00_run_all_figures.R")
+# or
+#   Rscript R/00_run_all_figures.R
+# =========================================================
 
-read_config <- function(path) {
-  if (!requireNamespace("yaml", quietly = TRUE)) {
-    stop("Package 'yaml' is required. Install it with: install.packages('yaml')")
+# ---- 1) always setwd to project root ----
+wd <- normalizePath(getwd(), winslash = "/", mustWork = FALSE)
+# if running inside .../R or .../scripts, go back to root
+if (grepl("/R$", wd) || grepl("/scripts$", wd)) setwd(dirname(wd))
+
+cat("Project root:", normalizePath(getwd(), winslash = "/"), "\n")
+
+# ---- 2) (optional) global options ----
+options(stringsAsFactors = FALSE)
+
+# ---- 3) define figure scripts to run (in order) ----
+# IMPORTANT:
+# - If your figure scripts are stored in the repo root (same level as R/), use "Figure_*.R"
+# - If stored inside R/, use "R/Figure_*.R"
+# Please adjust paths to match your repo.
+
+FIG_SCRIPTS <- c(
+  # Main figures
+  "Figure_1A-B.R",
+  "Figure_1C.R",
+  "Figure_1D-E.R",
+  "Figure_3E-F.R",
+  "Figure_4C.R",
+  "Figure_5A-B.R",
+  
+  # Supplementary
+  "Figure_S4.R"
+)
+
+# If your figure scripts are actually under R/ folder, uncomment this:
+# FIG_SCRIPTS <- file.path("R", FIG_SCRIPTS)
+
+# ---- 4) run with logging ----
+log_dir <- file.path("out", "logs")
+dir.create(log_dir, showWarnings = FALSE, recursive = TRUE)
+
+run_one <- function(path){
+  if(!file.exists(path)){
+    stop("File not found: ", path, "\n(Current wd: ", getwd(), ")")
   }
-  if (!file.exists(path)) {
-    stop("Config file not found: ", path)
+  
+  cat("\n=============================\n")
+  cat("Running:", path, "\n")
+  cat("=============================\n")
+  
+  # capture console output
+  log_file <- file.path(log_dir, paste0(gsub("[/\\\\: ]", "_", path), ".log"))
+  zz <- file(log_file, open = "wt")
+  sink(zz, type = "output")
+  sink(zz, type = "message")
+  
+  ok <- TRUE
+  err_msg <- NULL
+  t0 <- Sys.time()
+  
+  tryCatch({
+    source(path, local = new.env(parent = globalenv()))
+  }, error = function(e){
+    ok <<- FALSE
+    err_msg <<- conditionMessage(e)
+  })
+  
+  t1 <- Sys.time()
+  
+  sink(type = "message")
+  sink(type = "output")
+  close(zz)
+  
+  if(ok){
+    cat("OK:", path, " | time:", round(as.numeric(difftime(t1, t0, units = "secs")), 1), "s\n")
+  } else {
+    cat("FAILED:", path, "\n  Error:", err_msg, "\n  Log:", log_file, "\n")
+    stop("Stop at failed script: ", path)
   }
-  yaml::read_yaml(path)
 }
 
-ensure_dir <- function(path) {
-  if (is.null(path) || identical(path, "") || identical(path, "null")) return(invisible(FALSE))
-  if (!dir.exists(path)) dir.create(path, recursive = TRUE, showWarnings = FALSE)
-  invisible(TRUE)
+for(f in FIG_SCRIPTS){
+  run_one(f)
 }
 
-stop_if_missing <- function(paths, label = "file") {
-  paths <- paths[!is.null(paths)]
-  paths <- paths[!identical(paths, "null")]
-  paths <- paths[!is.na(paths)]
-  missing <- paths[!file.exists(paths)]
-  if (length(missing) > 0) {
-    stop("Missing ", label, "(s):\n- ", paste(missing, collapse = "\n- "))
-  }
-}
-
-read_tsv_table <- function(path, row_names = TRUE) {
-  read.table(
-    file = path,
-    header = TRUE,
-    sep = "\t",
-    row.names = if (row_names) 1 else NULL,
-    as.is = TRUE,
-    stringsAsFactors = FALSE,
-    comment.char = "",
-    check.names = FALSE,
-    quote = ""
-  )
-}
-
-save_rds <- function(obj, path) {
-  ensure_dir(dirname(path))
-  saveRDS(obj, file = path)
-}
+cat("\nAll figure scripts finished.\nLogs in:", normalizePath(log_dir, winslash="/"), "\n")
